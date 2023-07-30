@@ -101,7 +101,7 @@ Following sets of commands connect each service of host machine linked to a phys
 	sudo ip netns exec $PID ip link set eth3 up
 	sudo ip netns exec $PID ip addr add IP_ADDRESS_OF_RESPECTIVE_GHOST_NODE_IN_NS3/16 dev eth3
 	
-Repeat these steps for every ghost node connected to ns-3.
+Repeat these steps for every physical node linked to ghost node.
 
 ******************************************************************************************
 
@@ -110,7 +110,7 @@ Static routes have to be set from each of the external node to the simulated nod
 
 	ip route add 10.0.1.0/24 via IP_ADDRESS_OF_NEXT_HOP_NODE
  
-Repeat the step for every ghost node connected to ns-3.
+Repeat the step for every physical node connected to ns-3.
 ******************************************************************************************
 
 <h1>Deleting All Bridges and Leaving Swarm After Experimentation Concludes</h1>
