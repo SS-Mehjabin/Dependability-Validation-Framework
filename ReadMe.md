@@ -1,4 +1,4 @@
-*********************************** Setting up  ns-3 ***********************************
+<h1>ns-3 Installation and Setup</h1>
 
 ns-3.32 has been used for experimentation. Download the version of ns-3 from : https://www.nsnam.org/releases/ns-3-32/.
 Copy the contents of the 'scratch' folder to the ns-3 'scratch' folder.
@@ -10,14 +10,15 @@ Use the following commands to build and configure ns-3:
 
 *****************************************************************************************
 
-*********************************** Installing Docker ***********************************
+<h1>Docker Installation</h1>
+
 Following is a tutorial on how to install docker:
 
 	https://www.simplilearn.com/tutorials/docker-tutorial/how-to-install-docker-on-ubuntu
 	
 ******************************************************************************************
 
-**************************** Creating Docker Overlay Network ****************************
+<h1>Creating Docker Overlay Network</h1>
 
 Docker network between host device and physical nodes can be achieved using overlay network. For the overlay network, the host device creates a swarm of which physical nodes become parts. In order to initiate the swarm, execute the following command on the host machine:
 
@@ -25,19 +26,21 @@ Docker network between host device and physical nodes can be achieved using over
 
 The following message will appear:
 
-"Swarm initialized: current node (NODE_NAME) is now a manager.
+	Swarm initialized: current node (NODE_NAME) is now a manager.
 
-to add a worker to this swarm, run the following command:
+	To add a worker to this swarm, run the following command:
 
-	docker swarm join --token SOME_TOKEN SOME_IP_ADDRESS
+		docker swarm join --token SOME_TOKEN SOME_IP_ADDRESS
 
-To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions."
+	To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
 
 Now run the following commands for all physical nodes to make them a part of the swarm:
 
 	docker swarm join --token SOME_TOKEN SOME_IP_ADDRESS
 
-A confirmation message of "This node joined the swarm as a worker" will be displayed.
+The following confirmation message will be displayed:
+
+	This node joined the swarm as a worker
 
 At this point, the host device and the physical nodes are part of a swarm. For them to communicate, a overlay network has to be created between them. Run the following command on host device terminal:
 
@@ -52,10 +55,11 @@ A service named 'SERVICE_NAME' is created in host and one physical device.
 We can create a different overlay network and services for a different physical device in the same way. Now the physical nodes can communicate among themselves after going into the shared service of the respective devices using the command:
 
 	sudo docker exec -it SERVICE_NAME sh
-
+ 
+Repeat these steps for every ghost node connected to ns-3.
 ******************************************************************************************
 
-******************************** Creating Network Bridges ********************************
+<h1>Creating Network Bridges</h1>
 
 In order for ns-3 to communicate with physical devices, three different bridges need to be considered:
 
@@ -101,14 +105,15 @@ Repeat these steps for every ghost node connected to ns-3.
 
 ******************************************************************************************
 
-********************************* Creating Static Routes *********************************
+<h1>Creating Static Routes</h1>
 Static routes have to be set from each of the external node to the simulated nodes inside ns-3. Execute the following command from external node:
 
 	ip route add 10.0.1.0/24 via IP_ADDRESS_OF_NEXT_HOP_NODE
-
+ 
+Repeat the step for every ghost node connected to ns-3.
 ******************************************************************************************
 
-********* Deleting All Bridges and Leaving Swarm After Experimentation Concludes *********
+<h1>Deleting All Bridges and Leaving Swarm After Experimentation Concludes</h1>
 
 After experimentation concludes, it is necessary to delete all the tap and network bridges:
 
