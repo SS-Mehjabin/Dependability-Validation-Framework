@@ -1,0 +1,28 @@
+## -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+def build(bld):
+    module = bld.create_ns3_module('trust-aodv', ['aodv', 'trust-routing'])
+    module.includes = '.'
+    module.source = [
+        'model/aodv-trust-entry.cc',
+        'model/simple-aodv-trust-manager.cc',
+        'model/malicious-aodv-routing-protocol.cc',
+        'model/selfish-aodv-routing-protocol.cc',
+        'model/trust-aodv-routing-protocol.cc',
+        'helper/malicious-aodv-helper.cc',
+        'helper/selfish-aodv-helper.cc',
+        'helper/trust-aodv-helper.cc',
+        ]
+
+    headers = bld(features='ns3header')
+    headers.module = 'trust-aodv'
+    headers.source = [
+        'model/aodv-trust-entry.h',
+        'model/simple-aodv-trust-manager.h',
+        'model/malicious-aodv-routing-protocol.h',
+        'model/selfish-aodv-routing-protocol.h',
+        'model/trust-aodv-routing-protocol.h',
+        'helper/malicious-aodv-helper.h',
+        'helper/selfish-aodv-helper.h',
+        'helper/trust-aodv-helper.h',
+        ]
