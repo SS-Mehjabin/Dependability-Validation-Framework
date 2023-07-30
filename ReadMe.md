@@ -101,7 +101,9 @@ Following sets of commands connect each service of host machine linked to a phys
 	sudo ip netns exec $PID ip link set eth3 up
 	sudo ip netns exec $PID ip addr add IP_ADDRESS_OF_RESPECTIVE_GHOST_NODE_IN_NS3/16 dev eth3
 	
-Repeat these steps for every physical node linked to ghost node.
+Repeat these steps for every physical node linked to ghost node. At this moment, we can run the ns-3 example codes using the following command: 
+
+	python3 ./waf --run scratch/tap-wifi-virtual-machine
 
 ******************************************************************************************
 
