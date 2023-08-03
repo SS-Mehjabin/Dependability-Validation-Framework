@@ -66,6 +66,7 @@ class FailureDetectionThread(threading.Thread):
     global expStartTime
     print(f"[+] FailureDetectionThread object is created...")
     def run(self):
+        failureThreshold = 10        # in seconds
         print("[+] Inside FailureDetectionThread run...")
         expStartTime = datetime.datetime.now()
         
@@ -80,11 +81,16 @@ class FailureDetectionThread(threading.Thread):
                 if "lastHB" in l.keys():
                     delta = rnow - datetime.datetime.strptime(l["lastHB"], datetime.datetime.now())
                     print(f"[+] last HB from {l['name']} was {delta.seconds} seconds ago.")
+                    
                 else:
                     # TODO: maybe we should add a timestamp for last checked?
                     #       so that, if it has never sent HB for 2 *
                     delta = rnow - expStartTime
                     print(f"[+] {l['ip']} has never sent HB. Has been {delta.seconds} since start of experiment")
+                
+                if delta.seconds > failureThreshold:
+                    # we assume this neighbour has failed, need to call DARA1C
+                    dara1C(l["name"], l["ip"])
             
             time.sleep(5)
 
@@ -176,9 +182,21 @@ def getOneHopNeighbourIPandNames():
             assume it needs to be replaced by closest and least degree 1-hop neighbour.
             This function needs to figure out the distance from the failing (1-hop neighbour)
             node to all of it's neighbours. Taking into accout the degrees of nodes."""
-def findBestCandidate():
-    twoHopTable
+def dara1C(failedNodeName, failedNodeIP):
+    bestNodeName, bestNodeIP = findBestCandidate(failedNodeName, failedNodeIP)
     return
+
+def findBestCandidate(fName, fIP):
+    for l in twoHopTable["links"]:
+        if fName in l["name"] and fIP in l["ip"]:
+            coords_failing_node = l["coords"]
+            lst_candidates = l["links"]
+            for c in lst_candidates:
+                dist( coords_failing_node, c["coords"])
+                degree = c["numLinkds"]
+
+
+    return "name", "ip"
 
 """ TODO:   This will be calling the iRobot script to move the iRobot into that coordintes"""
 def moveToLocation(coord):
@@ -193,6 +211,15 @@ def updateTwoHopTable():
 def childMoveOptimizer():
     return
 
+""" TODO:   Calculate euclidian distance given 2 coordinates. c1&c2 are in string format in the form of 'x,y' """
+def dist(c1, c2):
+    c1x=float(c1.split(',')[0])
+    c1y=float(c1.split(',')[1])
+
+    c2x=float(c2.split(',')[0])
+    c2y=float(c2.split(',')[1])
+
+    return math.sqrt((c1x - c2x)**2 + (c1y - c2y)**2)   #distance btwn c1 and c2
 
 ################################################################################
 @app.route('/')
