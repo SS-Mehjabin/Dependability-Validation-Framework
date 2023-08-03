@@ -267,7 +267,7 @@ if __name__ == "__main__":
     print(f"[+] Starting send thread")
     hbSndthread.start()
     print(f"[+] Starting receive thread")
-    hbRcvthread.start()
+    hbRcvThread.start()
     print(f"[+] Starting failure detection thread")
     failDetThread.start()
 
