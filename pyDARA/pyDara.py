@@ -19,6 +19,7 @@ global coord_y
 global twoHopTable
 global lst_oneHopIPs
 global udp_port
+global expStartTime         # the FailureDetectionThread will set this timestamp, marking the initial time experiment starts.
 
 ######
 # DARA-1C every node needs to run a thread that Broadcasts a message as a heartbeat to it's 1-link neighbours and 
@@ -42,6 +43,7 @@ class HeartbeatSendThread(threading.Thread):
 
             time.sleep(5)
 
+
 class HeartbeatReceiveThread(threading.Thread):
     print(f"[+] HeartbeatReceiveThread object is created...")
     def run(self):
@@ -53,6 +55,38 @@ class HeartbeatReceiveThread(threading.Thread):
             print("[+] RcvThread: waiting for incoming MSG....")
             data, addr = client.recvfrom(1024)
             print(f"[+] Received broadcast MSG: {data} from {addr}. (at {datetime.datetime.now()})")
+            #TODO:  we need to keep track of the last heart-beat received, maybe in a timestamp format.
+            #       check if we can add a field in the twoHopTable["links"]["lastHB"]=datetime.datetime.now()
+            for l in twoHopTable["links"]:
+                if l["ip"] == addr:
+                    l["lastHB"]=datetime.datetime.now()
+
+
+class FailureDetectionThread(threading.Thread):
+    global expStartTime
+    print(f"[+] FailureDetectionThread object is created...")
+    def run(self):
+        print("[+] Inside FailureDetectionThread run...")
+        expStartTime = datetime.datetime.now()
+        
+        while True:
+            print(f"[+] Checking last HB updates from 1-link neighbours: at {expStartTime}")
+            #TODO:  check if this field exists for every neighbour: twoHopTable["links"]["lastHB"]
+            #       if ["lastHB" doesn't exist, that means we have not received any heart-beat from this neighbour yet.
+            #       if it exists, convert to datetime object, and calculate delta from current time. Print out "last HB received T seconds ago"
+            #       if delta is more than 2 * HB_interval or have never received any hb for more than 2 * HB_interval; maybe it is failed?
+            rnow = datetime.datetime.now()
+            for l in twoHopTable["links"]:
+                if "lastHB" in l.keys():
+                    delta = rnow - datetime.datetime.strptime(l["lastHB"], datetime.datetime.now())
+                    print(f"[+] last HB from {l['name']} was {delta.seconds} seconds ago.")
+                else:
+                    # TODO: maybe we should add a timestamp for last checked?
+                    #       so that, if it has never sent HB for 2 *
+                    delta = rnow - expStartTime
+                    print(f"[+] {l['ip']} has never sent HB. Has been {delta.seconds} since start of experiment")
+            
+            time.sleep(5)
 
 
 ######
@@ -199,12 +233,15 @@ if __name__ == "__main__":
     print(f"[+] distance to non-neighbour e5: {getDistToNode('e5')}")
 
     
-    hbsndthread = HeartbeatSendThread()
-    hbrcvthread = HeartbeatReceiveThread()
+    hbSndthread = HeartbeatSendThread()
+    hbRcvThread = HeartbeatReceiveThread()
+    failDetThread = FailureDetectionThread()
 
     print(f"[+] Starting send thread")
-    hbsndthread.start()
+    hbSndthread.start()
     print(f"[+] Starting receive thread")
-    hbrcvthread.start()
+    hbRcvthread.start()
+    print(f"[+] Starting failure detection thread")
+    failDetThread.start()
 
     app.run(host="0.0.0.0", debug=False, use_reloader=False, port=5000)
