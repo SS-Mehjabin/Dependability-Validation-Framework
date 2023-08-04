@@ -219,6 +219,10 @@ def findBestCandidate(fName, fIP):
             print(f"[+FBC+] links of the failed node: {l['links']}")
             coords_failing_node = l["coords"]
             
+            #TODO: for some-reason dstToFailing element additons persist in the twoHopTable, make sure they don't!!
+            #TODO: try deep-copy of each dictionary in the list
+            # from copy import deepcopy
+            # myCopy = deepcopy(myDict)
             print(f"[+FBC+] Coords of failingNode: {coords_failing_node}")
             ptr = l["links"]
             lst_candidates = ptr[:]    # making a copy of the list, so that original twoHopTable doesn't change.
@@ -237,7 +241,7 @@ def findBestCandidate(fName, fIP):
 
 """ TODO:   This will be calling the iRobot script to move the iRobot into that coordintes"""
 def moveToLocation(coords, distance):
-    print(f"[+MTL+] iRobot carrying me: {node_name} is moving {distance} unites to Coordinates: {coords} to replace failing node.")
+    print(f"[+MTL+] iRobot carrying me: {node_name} is moving {distance} units to Coordinates: {coords} to replace failing node.")
     return
 
 
