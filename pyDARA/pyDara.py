@@ -258,9 +258,9 @@ def moveToLocation(fcoords, distance):
     x_diff=destination[0]-source[0]
     y_diff=destination[1]-source[1]
 
-    unitfront=2.35  #Time related to unit distance in grid
-    halffront=1.2   #Time related to half unit distance in grid
-    qautspin= 1.1   #90 degree spin towards left
+    unitfront=2.16  #Time related to unit distance in grid
+    halffront=1.08  #Time related to half unit distance in grid
+    qautspin=1.1    #90 degree spin towards left
 
     print(f"[+MTL+] Moving in X axis...")
     if x_diff>0:
