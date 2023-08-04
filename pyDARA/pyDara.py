@@ -250,8 +250,8 @@ def moveToLocation(fcoords, distance):
     print(f"[+MTL+] iRobot carrying me: {node_name} is moving {distance} units to Coordinates: {fcoords} to replace failing node.")
     source.append(float(twoHopTable["coords"].split(",")[0]))
     source.append(float(twoHopTable["coords"].split(",")[1]))
-    destination[0] = float(fcoords.split(",")[0])
-    destination[1] = float(fcoords.split(",")[1])
+    destination.append(float(fcoords.split(",")[0]))
+    destination.append(float(fcoords.split(",")[1]))
 
     roomba = irobot_create.Roomba('/dev/ttyUSB0')
 
