@@ -193,10 +193,10 @@ def getOneHopNeighbourIPandNames():
 def dara1C(failedNodeName, failedNodeIP, coords):
     print(f"[+D1C+] at dara1C for failingNode: {failedNodeName}, {failedNodeIP}")
     if isCutVertex(failedNodeName, failedNodeIP):
-        bestNodeName, bestNodeIP, distance, failedNodeCoords = findBestCandidate(failedNodeName, failedNodeIP)
+        bestNodeName, bestNodeIP, distance = findBestCandidate(failedNodeName, failedNodeIP)
         if bestNodeName in twoHopTable["name"] and bestNodeIP in twoHopTable["ip"]:
             print(f"[+D1C+] We are the best candidate, MOVING to replace failing node {failedNodeName}")
-            moveToLocation(coords, distance)
+            moveToLocation(coords)
         else:
             print(f"[+D1C+] We are NOT the best candidate. {bestNodeName} is moving {distance} units to replace")
     return
