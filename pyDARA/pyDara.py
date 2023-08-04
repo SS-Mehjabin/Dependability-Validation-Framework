@@ -58,8 +58,8 @@ class HeartbeatReceiveThread(threading.Thread):
             #TODO:  we need to keep track of the last heart-beat received, maybe in a timestamp format.
             #       check if we can add a field in the twoHopTable["links"]["lastHB"]=datetime.datetime.now()
             for l in twoHopTable["links"]:
-                print(f"[+HRT+] link: {l}, addr: {addr}")
-                if l["ip"] == str(addr):
+                print(f"[+HRT+] link: {l}, addr: {addr[0]}")
+                if l["ip"] == str(addr[0]):
                     l["lastHB"]=datetime.datetime.now()
 
 
