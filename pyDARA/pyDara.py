@@ -9,6 +9,9 @@ import argparse
 from subprocess import check_output as runoutput
 from operator import itemgetter
 
+import irobot_create
+from math import floor
+
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -237,11 +240,147 @@ def findBestCandidate(fName, fIP):
             
             best = lst_candidates[0]
     print(f"[+FBC+] sorted_candidates: {lst_candidates}. First index is the best candidate.")
-    return best["name"], best["ip"], best["dstToFailing"]
+    return best["name"], best["ip"], best["dstToFailing"]   # I Need the coordinates of best candidate and failed node
 
 """ TODO:   This will be calling the iRobot script to move the iRobot into that coordintes"""
-def moveToLocation(coords, distance):
+#def moveToLocation(coords, distance):
+def moveToLocation(bcoords,fcoords):
     print(f"[+MTL+] iRobot carrying me: {node_name} is moving {distance} units to Coordinates: {coords} to replace failing node.")
+    
+    src=bcoords.split(',')
+    dst=fcoords.split(',')
+    
+    source = [0,0]
+    destination = [0,0]
+    
+    for i in range(len(src)):
+        source[i] = float(src[i])
+        destination[i] = float(dst[i])
+
+    roomba = irobot_create.Roomba('/dev/ttyUSB0')
+
+
+    x_diff=destination[0]-source[0]
+    y_diff=destination[1]-source[1]
+
+    unitfront = 2.35
+    halffront=1.2
+    qautspin= 1.1 
+
+    if x_diff>0:
+        for i in range(floor(x_diff)):
+            roomba.set_drive_straight()
+            time.sleep(unitfront) #Time related to unit distance in grid
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+        if (x_diff%1)!=0:
+            roomba.set_drive_straight()
+            time.sleep(halffront) #Time related to half unit distance in grid
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+
+    elif x_diff<0:
+
+        roomba.set_drive_spin_cw()
+        time.sleep(qautspin) #90 degree spin towards left
+        roomba.set_drive_stop()
+        time.sleep(0.5)
+        
+        roomba.set_drive_spin_cw()
+        time.sleep(qautspin)
+        roomba.set_drive_stop()
+        time.sleep(0.5)
+
+        for i in range(floor(abs(x_diff))):
+            roomba.set_drive_straight()
+            time.sleep(unitfront)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+        if (abs(x_diff)%1)!=0:
+            roomba.set_drive_straight()
+            time.sleep(halffront)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+            
+        roomba.set_drive_spin_cw()
+        time.sleep(qautspin)
+        roomba.set_drive_stop()
+        time.sleep(0.5)
+        
+        roomba.set_drive_spin_cw()
+        time.sleep(qautspin)
+        roomba.set_drive_stop()
+        time.sleep(0.5)
+
+    if y_diff>0:
+        
+        #three left turns to go to positive y 
+        
+        roomba.set_drive_spin_cw()
+        time.sleep(qautspin)
+        roomba.set_drive_stop()
+        time.sleep(0.5)
+        
+        roomba.set_drive_spin_cw()
+        time.sleep(qautspin)
+        roomba.set_drive_stop()
+        time.sleep(0.5)
+        
+        roomba.set_drive_spin_cw()
+        time.sleep(qautspin)
+        roomba.set_drive_stop()
+        time.sleep(0.5)
+        
+        for i in range(floor(y_diff)):
+            roomba.set_drive_straight()
+            time.sleep(unitfront)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+        if (y_diff%1)!=0:
+            roomba.set_drive_straight()
+            time.sleep(halffront)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+        
+        roomba.set_drive_spin_cw()
+        time.sleep(qautspin)
+        roomba.set_drive_stop()
+        time.sleep(0.5)
+            
+    elif y_diff<0:
+        
+        roomba.set_drive_spin_cw()
+        time.sleep(qautspin)
+        roomba.set_drive_stop()
+        time.sleep(0.5)
+        
+        for i in range(floor(abs(y_diff))):
+            roomba.set_drive_straight()
+            time.sleep(unitfront)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+        if (abs(y_diff)%1)!=0:
+            roomba.set_drive_straight()
+            time.sleep(halffront)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+            
+        roomba.set_drive_spin_cw()
+        time.sleep(qautspin)
+        roomba.set_drive_stop()
+        time.sleep(0.5)
+        
+        roomba.set_drive_spin_cw()
+        time.sleep(qautspin)
+        roomba.set_drive_stop()
+        time.sleep(0.5)
+        
+        roomba.set_drive_spin_cw()
+        time.sleep(qautspin)
+        roomba.set_drive_stop()
+        time.sleep(0.5)
+
+    roomba.close()
     return
 
 
