@@ -54,13 +54,15 @@ class HeartbeatReceiveThread(threading.Thread):
         while True:
             print("[+HRT+] RcvThread: waiting for incoming MSG....")
             data, addr = client.recvfrom(1024)
-            print(f"[+HRT+] Received broadcast MSG: {data} from {addr}. (at {datetime.datetime.now()})")
+            rnow = datetime.datetime.now()
+            print(f"[+HRT+] Received broadcast MSG: {data} from {addr}. (at {rnow})")
             #TODO:  we need to keep track of the last heart-beat received, maybe in a timestamp format.
             #       check if we can add a field in the twoHopTable["links"]["lastHB"]=datetime.datetime.now()
             for l in twoHopTable["links"]:
                 print(f"[+HRT+] link: {l}, addr: {addr[0]}")
                 if l["ip"] == str(addr[0]):
-                    l["lastHB"]=datetime.datetime.now()
+                    print(f"[+HRT+] updated last HB received timestamp ({rnow}) for {addr[0]}")
+                    l["lastHB"]=str(rnow)
 
 
 class FailureDetectionThread(threading.Thread):
@@ -72,12 +74,12 @@ class FailureDetectionThread(threading.Thread):
         print(f"[+FDT+] Inside FailureDetectionThread run...expStartTime: {expStartTime}, failureThresholdSeconds: {failureThreshold}")
         
         while True:
-            print(f"[+FDT+] Checking last HB updates from 1-link neighbours: at {datetime.datetime.now()}, {expStartTime}")
+            rnow = datetime.datetime.now()
+            print(f"[+FDT+] Checking last HB updates from 1-link neighbours: at {rnow}")
             #TODO:  check if this field exists for every neighbour: twoHopTable["links"]["lastHB"]
             #       if ["lastHB" doesn't exist, that means we have not received any heart-beat from this neighbour yet.
             #       if it exists, convert to datetime object, and calculate delta from current time. Print out "last HB received T seconds ago"
             #       if delta is more than 2 * HB_interval or have never received any hb for more than 2 * HB_interval; maybe it is failed?
-            rnow = datetime.datetime.now()
             for l in twoHopTable["links"]:
                 if "lastHB" in l.keys():
                     delta = rnow - datetime.datetime.strptime(l["lastHB"], datetime.datetime.now())
