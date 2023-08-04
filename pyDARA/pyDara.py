@@ -193,7 +193,7 @@ def getOneHopNeighbourIPandNames():
 def dara1C(failedNodeName, failedNodeIP, coords):
     print(f"[+D1C+] at dara1C for failingNode: {failedNodeName}, {failedNodeIP}")
     if isCutVertex(failedNodeName, failedNodeIP):
-        bestNodeName, bestNodeIP, distance = findBestCandidate(failedNodeName, failedNodeIP)
+        bestNodeName, bestNodeIP, distance, failedNodeCoords = findBestCandidate(failedNodeName, failedNodeIP)
         if bestNodeName in twoHopTable["name"] and bestNodeIP in twoHopTable["ip"]:
             print(f"[+D1C+] We are the best candidate, MOVING to replace failing node {failedNodeName}")
             moveToLocation(coords, distance)
@@ -240,30 +240,25 @@ def findBestCandidate(fName, fIP):
             
             best = lst_candidates[0]
     print(f"[+FBC+] sorted_candidates: {lst_candidates}. First index is the best candidate.")
-    return best["name"], best["ip"], best["dstToFailing"]   # I Need the coordinates of best candidate and failed node
+    return best["name"], best["ip"], best["dstToFailing"]  # I Need the coordinates of best candidate and failed node
 
 """ TODO:   This will be calling the iRobot script to move the iRobot into that coordintes"""
 #def moveToLocation(coords, distance):
-def moveToLocation(bcoords,fcoords):
+def moveToLocation(fcoords):
+    source=[]
+    destination=[]
     print(f"[+MTL+] iRobot carrying me: {node_name} is moving {distance} units to Coordinates: {coords} to replace failing node.")
-    
-    src=bcoords.split(',')
-    dst=fcoords.split(',')
-    
-    source = [0,0]
-    destination = [0,0]
-    
-    for i in range(len(src)):
-        source[i] = float(src[i])
-        destination[i] = float(dst[i])
+    source[0] = float(twoHopTable["coords"].split(",")[0])
+    source[1] = float(twoHopTable["coords"].split(",")[1])
+    destination[0] = float(fcoords.split(",")[0])
+    destination[1] = float(fcoords.split(",")[1])
 
     roomba = irobot_create.Roomba('/dev/ttyUSB0')
-
 
     x_diff=destination[0]-source[0]
     y_diff=destination[1]-source[1]
 
-    unitfront = 2.35
+    unitfront=2.35
     halffront=1.2
     qautspin= 1.1 
 
