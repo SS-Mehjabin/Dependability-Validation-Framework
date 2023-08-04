@@ -248,8 +248,8 @@ def moveToLocation(fcoords, distance):
     source=[]
     destination=[]
     print(f"[+MTL+] iRobot carrying me: {node_name} is moving {distance} units to Coordinates: {fcoords} to replace failing node.")
-    source[0] = float(twoHopTable["coords"].split(",")[0])
-    source[1] = float(twoHopTable["coords"].split(",")[1])
+    source.append(float(twoHopTable["coords"].split(",")[0]))
+    source.append(float(twoHopTable["coords"].split(",")[1]))
     destination[0] = float(fcoords.split(",")[0])
     destination[1] = float(fcoords.split(",")[1])
 
