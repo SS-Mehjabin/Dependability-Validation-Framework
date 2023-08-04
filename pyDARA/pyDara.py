@@ -188,7 +188,7 @@ def getOneHopNeighbourIPandNames():
             This function needs to figure out the distance from the failing (1-hop neighbour)
             node to all of it's neighbours. Taking into accout the degrees of nodes."""
 def dara1C(failedNodeName, failedNodeIP, coords):
-    print(f"[+] at dara1C for failingNode: {failedNodeName}, {failedNodeIP}")
+    print(f"[+D1C+] at dara1C for failingNode: {failedNodeName}, {failedNodeIP}")
     if isCutVertex(failedNodeName, failedNodeIP):
         bestNodeName, bestNodeIP, distance = findBestCandidate(failedNodeName, failedNodeIP)
         if bestNodeName in twoHopTable["name"] and bestNodeIP in twoHopTable["ip"]:
@@ -236,8 +236,8 @@ def findBestCandidate(fName, fIP):
     return best["name"], best["ip"], best["dstToFailing"]
 
 """ TODO:   This will be calling the iRobot script to move the iRobot into that coordintes"""
-def moveToLocation(coords):
-    print(f"[+MTL+] iRobot carrying me: {node_name} is Moving to Coordinates: {coords} to replace failing node.")
+def moveToLocation(coords, distance):
+    print(f"[+MTL+] iRobot carrying me: {node_name} is moving {distance} unites to Coordinates: {coords} to replace failing node.")
     return
 
 
