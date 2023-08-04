@@ -90,6 +90,7 @@ class FailureDetectionThread(threading.Thread):
                 
                 if delta.seconds > failureThreshold:
                     # we assume this neighbour has failed, need to call DARA1C
+                    print(f"[+] delta.seconds ({delta.seconds}) is more than threshold ({failureThreshold}), calling DARA-1C...")
                     dara1C(l["name"], l["ip"])
             
             time.sleep(5)
@@ -183,18 +184,23 @@ def getOneHopNeighbourIPandNames():
             This function needs to figure out the distance from the failing (1-hop neighbour)
             node to all of it's neighbours. Taking into accout the degrees of nodes."""
 def dara1C(failedNodeName, failedNodeIP):
+    print(f"[+] at dara1C for failingNode: {failedNodeName}, {failedNodeIP}")
     bestNodeName, bestNodeIP = findBestCandidate(failedNodeName, failedNodeIP)
     return
 
 def findBestCandidate(fName, fIP):
+    print(f"[+] FindBestCandidate({fName}, {fIP})")
     for l in twoHopTable["links"]:
         if fName in l["name"] and fIP in l["ip"]:
+            print(f"[+] links of the failed node: {l['links']}")
             coords_failing_node = l["coords"]
+            print(f"[+] Coords of failiingNode: {coords_failing_node}")
             lst_candidates = l["links"]
+            # TODO: add yourself (this current node to the lst_candidates[])
             for c in lst_candidates:
-                dist( coords_failing_node, c["coords"])
-                degree = c["numLinkds"]
-
+                dst_of_cand_to_failing = dist( coords_failing_node, c["coords"])
+                degree_of_cand = c["numLinkds"]
+                print(f"[+] Candidate: {c['name']}, dst_of_cand_to_failing: {dst_of_cand_to_failing}, degree_of_cand: {degree_of_cand}")
 
     return "name", "ip"
 
