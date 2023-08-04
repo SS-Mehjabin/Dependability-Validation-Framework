@@ -82,7 +82,7 @@ class FailureDetectionThread(threading.Thread):
             #       if delta is more than 2 * HB_interval or have never received any hb for more than 2 * HB_interval; maybe it is failed?
             for l in twoHopTable["links"]:
                 if "lastHB" in l.keys():
-                    delta = rnow - datetime.datetime.strptime(l["lastHB"], datetime.datetime.now())
+                    delta = rnow - datetime.datetime.strptime(l["lastHB"], '%Y-%m-%d %H:%M:%S.%f')
                     print(f"[+FDT+] last HB from {l['name']} was {delta.seconds} seconds ago.")
                     
                 else:
