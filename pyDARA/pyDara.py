@@ -7,6 +7,7 @@ import time
 import datetime
 import argparse
 from subprocess import check_output as runoutput
+from operator import itemgetter
 
 from flask import Flask, request, jsonify
 
@@ -94,7 +95,7 @@ class FailureDetectionThread(threading.Thread):
                 if delta.seconds > failureThreshold:
                     # we assume this neighbour has failed, need to call DARA1C
                     print(f"[+FDT+] delta.seconds ({delta.seconds}) is more than threshold ({failureThreshold}), calling DARA-1C...")
-                    dara1C(l["name"], l["ip"])
+                    dara1C(l["name"], l["ip"], l["coords"])
             
             time.sleep(5)
 
@@ -186,32 +187,59 @@ def getOneHopNeighbourIPandNames():
             assume it needs to be replaced by closest and least degree 1-hop neighbour.
             This function needs to figure out the distance from the failing (1-hop neighbour)
             node to all of it's neighbours. Taking into accout the degrees of nodes."""
-def dara1C(failedNodeName, failedNodeIP):
+def dara1C(failedNodeName, failedNodeIP, coords):
     print(f"[+] at dara1C for failingNode: {failedNodeName}, {failedNodeIP}")
-    bestNodeName, bestNodeIP = findBestCandidate(failedNodeName, failedNodeIP)
+    if isCutVertex(failedNodeName, failedNodeIP):
+        bestNodeName, bestNodeIP, distance = findBestCandidate(failedNodeName, failedNodeIP)
+        if bestNodeName in twoHopTable["name"] and bestNodeIP in twoHopTable["ip"]:
+            print(f"[+D1C+] We are the best candidate, MOVING to replace failing node {failedNodeName}")
+            moveToLocation(coords, distance)
+        else:
+            print(f"[+D1C+] We are NOT the best candidate. {bestNodeName} is moving {distance} units to replace")
     return
+
+
+""" TODO:   Double check with Dr Younis, how to find if a node is a cut-vertex from your twoHopTable."""
+def isCutVertex(fName, fIP):
+    for l in twoHopTable["links"]:
+        if fName in l["name"] and fIP in l["ip"]:
+            if int(l["numLinks"]) > 2:
+                print("[+ICV+] failing node is a CUT-VERTEX, continue with DARA-1C")
+                return True
+            else:
+                print("[+ICV+] failing node is NOT a CUT-VERTEX (degree less than 3), no need to replace it.")
+                return False
+
 
 def findBestCandidate(fName, fIP):
     print(f"[+FBC+] FindBestCandidate({fName}, {fIP})")
+    best={}
     for l in twoHopTable["links"]:
         if fName in l["name"] and fIP in l["ip"]:
             print(f"[+FBC+] links of the failed node: {l['links']}")
             coords_failing_node = l["coords"]
+            
             print(f"[+FBC+] Coords of failingNode: {coords_failing_node}")
-            lst_candidates = l["links"]
+            ptr = l["links"]
+            lst_candidates = ptr[:]    # making a copy of the list, so that original twoHopTable doesn't change.
             lst_candidates.append( {"name": node_name, "ip":twoHopTable["ip"], "coords": twoHopTable["coords"], "numLinks": twoHopTable["numLinks"]} )
             # TODO: add yourself (this current node to the lst_candidates[]) [+DONE+]
             for c in lst_candidates:
-                dst_of_cand_to_failing = dist( coords_failing_node, c["coords"] )
-                #print(f"[+FBC+] Candidate: {c['name']}, dst_of_cand_to_failing: {dst_of_cand_to_failing}, degree_of_cand: {c['numLinks']}")
-                c["dstToFailing"] = dst_of_cand_to_failing
-            print(f"[+FBC+] Best candidates: {lst_candidates}")
+                c["dstToFailing"] = dist( coords_failing_node, c["coords"] )
 
-    return "name", "ip"
+            print(f"[+FBC+] Best candidates: {lst_candidates}")
+            lst_candidates = sorted(lst_candidates, key=itemgetter('dstToFailing')) # sort by distance to failing node.
+            lst_candidates = sorted(lst_candidates, key=itemgetter('numLinks'))    # asending sort by node degree.
+            
+            best = lst_candidates[0]
+    print(f"[+FBC+] sorted_candidates: {lst_candidates}. First index is the best candidate.")
+    return best["name"], best["ip"], best["dstToFailing"]
 
 """ TODO:   This will be calling the iRobot script to move the iRobot into that coordintes"""
-def moveToLocation(coord):
+def moveToLocation(coords):
+    print(f"[+MTL+] iRobot carrying me: {node_name} is Moving to Coordinates: {coords} to replace failing node.")
     return
+
 
 """ TODO:   If we move, or a neighbour moves, we need to update the twoHopTable to reflect the new topology"""
 def updateTwoHopTable():
