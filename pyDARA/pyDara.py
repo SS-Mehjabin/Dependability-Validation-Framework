@@ -258,26 +258,27 @@ def moveToLocation(fcoords, distance):
     x_diff=destination[0]-source[0]
     y_diff=destination[1]-source[1]
 
-    unitfront=2.35
-    halffront=1.2
-    qautspin= 1.1 
+    unitfront=2.35  #Time related to unit distance in grid
+    halffront=1.2   #Time related to half unit distance in grid
+    qautspin= 1.1   #90 degree spin towards left
 
+    print(f"[+MTL+] Moving in X axis...")
     if x_diff>0:
         for i in range(floor(x_diff)):
             roomba.set_drive_straight()
-            time.sleep(unitfront) #Time related to unit distance in grid
+            time.sleep(unitfront) 
             roomba.set_drive_stop()
             time.sleep(0.5)
         if (x_diff%1)!=0:
             roomba.set_drive_straight()
-            time.sleep(halffront) #Time related to half unit distance in grid
+            time.sleep(halffront)
             roomba.set_drive_stop()
             time.sleep(0.5)
 
     elif x_diff<0:
 
         roomba.set_drive_spin_cw()
-        time.sleep(qautspin) #90 degree spin towards left
+        time.sleep(qautspin)
         roomba.set_drive_stop()
         time.sleep(0.5)
         
@@ -307,6 +308,7 @@ def moveToLocation(fcoords, distance):
         roomba.set_drive_stop()
         time.sleep(0.5)
 
+    print(f"[+MTL+] Moving in Y axis...")
     if y_diff>0:
         
         #three left turns to go to positive y 
@@ -375,6 +377,7 @@ def moveToLocation(fcoords, distance):
         roomba.set_drive_stop()
         time.sleep(0.5)
 
+    print(f"[+MTL+] Roomba should be at the destination now...")
     roomba.close()
     return
 
