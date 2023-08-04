@@ -26,9 +26,9 @@ global expStartTime         # the FailureDetectionThread will set this timestamp
 # listens in another thread to incoming heartbeat from 1-link neighbours.
 #####
 class HeartbeatSendThread(threading.Thread):
-    print(f"[+] HeartbeatSendThread object is created...")
+    print(f"[+HST+] HeartbeatSendThread object is created...")
     def run(self):
-        print("[+] Inside SendThread run...")
+        print("[+HST+] Inside SendThread run...")
         client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         #client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1) # TODO: Do not Broadcast, send to one-link neighbours.
         client.settimeout(0.2)
@@ -39,39 +39,40 @@ class HeartbeatSendThread(threading.Thread):
             #client.sendto(msg, ('<broadcast>', 37020))
             for ip in lst_oneHopIPs:
                 client.sendto(msg, (ip, udp_port))
-                print(f'[+] H-B-Msg sent to {ip}:{udp_port}...(at {datetime.datetime.now()})')
+                print(f'[+HST+] H-B-Msg sent to {ip}:{udp_port}...(at {datetime.datetime.now()})')
 
             time.sleep(5)
 
 
 class HeartbeatReceiveThread(threading.Thread):
-    print(f"[+] HeartbeatReceiveThread object is created...")
+    print(f"[+HRT+] HeartbeatReceiveThread object is created...")
     def run(self):
-        print("[+] Inside ReceiveThread run...")
+        print("[+HRT+] Inside ReceiveThread run...")
         client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         #client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1) # Enable Broadcasting Mode
         client.bind(("", udp_port))
         while True:
-            print("[+] RcvThread: waiting for incoming MSG....")
+            print("[+HRT+] RcvThread: waiting for incoming MSG....")
             data, addr = client.recvfrom(1024)
-            print(f"[+] Received broadcast MSG: {data} from {addr}. (at {datetime.datetime.now()})")
+            print(f"[+HRT+] Received broadcast MSG: {data} from {addr}. (at {datetime.datetime.now()})")
             #TODO:  we need to keep track of the last heart-beat received, maybe in a timestamp format.
             #       check if we can add a field in the twoHopTable["links"]["lastHB"]=datetime.datetime.now()
             for l in twoHopTable["links"]:
-                if l["ip"] == addr:
+                print(f"[+HRT+] link: {l}, addr: {addr}")
+                if l["ip"] == str(addr):
                     l["lastHB"]=datetime.datetime.now()
 
 
 class FailureDetectionThread(threading.Thread):
     global expStartTime
-    print(f"[+] FailureDetectionThread object is created...")
+    print(f"[+FDT+] FailureDetectionThread object is created...")
     def run(self):
         failureThreshold = 10        # in seconds
-        print("[+] Inside FailureDetectionThread run...")
         expStartTime = datetime.datetime.now()
+        print(f"[+FDT+] Inside FailureDetectionThread run...expStartTime: {expStartTime}, failureThresholdSeconds: {failureThreshold}")
         
         while True:
-            print(f"[+] Checking last HB updates from 1-link neighbours: at {expStartTime}")
+            print(f"[+FDT+] Checking last HB updates from 1-link neighbours: at {datetime.datetime.now()}, {expStartTime}")
             #TODO:  check if this field exists for every neighbour: twoHopTable["links"]["lastHB"]
             #       if ["lastHB" doesn't exist, that means we have not received any heart-beat from this neighbour yet.
             #       if it exists, convert to datetime object, and calculate delta from current time. Print out "last HB received T seconds ago"
@@ -80,17 +81,17 @@ class FailureDetectionThread(threading.Thread):
             for l in twoHopTable["links"]:
                 if "lastHB" in l.keys():
                     delta = rnow - datetime.datetime.strptime(l["lastHB"], datetime.datetime.now())
-                    print(f"[+] last HB from {l['name']} was {delta.seconds} seconds ago.")
+                    print(f"[+FDT+] last HB from {l['name']} was {delta.seconds} seconds ago.")
                     
                 else:
                     # TODO: maybe we should add a timestamp for last checked?
                     #       so that, if it has never sent HB for 2 *
                     delta = rnow - expStartTime
-                    print(f"[+] {l['ip']} has never sent HB. Has been {delta.seconds} since start of experiment")
+                    print(f"[+FDT+] {l['ip']} has never sent HB. Has been {delta.seconds} since start of experiment")
                 
                 if delta.seconds > failureThreshold:
                     # we assume this neighbour has failed, need to call DARA1C
-                    print(f"[+] delta.seconds ({delta.seconds}) is more than threshold ({failureThreshold}), calling DARA-1C...")
+                    print(f"[+FDT+] delta.seconds ({delta.seconds}) is more than threshold ({failureThreshold}), calling DARA-1C...")
                     dara1C(l["name"], l["ip"])
             
             time.sleep(5)
@@ -189,18 +190,18 @@ def dara1C(failedNodeName, failedNodeIP):
     return
 
 def findBestCandidate(fName, fIP):
-    print(f"[+] FindBestCandidate({fName}, {fIP})")
+    print(f"[+FBC+] FindBestCandidate({fName}, {fIP})")
     for l in twoHopTable["links"]:
         if fName in l["name"] and fIP in l["ip"]:
-            print(f"[+] links of the failed node: {l['links']}")
+            print(f"[+FBC+] links of the failed node: {l['links']}")
             coords_failing_node = l["coords"]
-            print(f"[+] Coords of failiingNode: {coords_failing_node}")
+            print(f"[+FBC+] Coords of failiingNode: {coords_failing_node}")
             lst_candidates = l["links"]
             # TODO: add yourself (this current node to the lst_candidates[])
             for c in lst_candidates:
                 dst_of_cand_to_failing = dist( coords_failing_node, c["coords"])
-                degree_of_cand = c["numLinkds"]
-                print(f"[+] Candidate: {c['name']}, dst_of_cand_to_failing: {dst_of_cand_to_failing}, degree_of_cand: {degree_of_cand}")
+                degree_of_cand = c["numLinks"]
+                print(f"[+FBC+] Candidate: {c['name']}, dst_of_cand_to_failing: {dst_of_cand_to_failing}, degree_of_cand: {degree_of_cand}")
 
     return "name", "ip"
 
