@@ -197,13 +197,15 @@ def findBestCandidate(fName, fIP):
         if fName in l["name"] and fIP in l["ip"]:
             print(f"[+FBC+] links of the failed node: {l['links']}")
             coords_failing_node = l["coords"]
-            print(f"[+FBC+] Coords of failiingNode: {coords_failing_node}")
+            print(f"[+FBC+] Coords of failingNode: {coords_failing_node}")
             lst_candidates = l["links"]
-            # TODO: add yourself (this current node to the lst_candidates[])
+            lst_candidates.append( {"name": node_name, "ip":twoHopTable["ip"], "coords": twoHopTable["coords"], "numLinks": twoHopTable["numLinks"]} )
+            # TODO: add yourself (this current node to the lst_candidates[]) [+DONE+]
             for c in lst_candidates:
-                dst_of_cand_to_failing = dist( coords_failing_node, c["coords"])
-                degree_of_cand = c["numLinks"]
-                print(f"[+FBC+] Candidate: {c['name']}, dst_of_cand_to_failing: {dst_of_cand_to_failing}, degree_of_cand: {degree_of_cand}")
+                dst_of_cand_to_failing = dist( coords_failing_node, c["coords"] )
+                #print(f"[+FBC+] Candidate: {c['name']}, dst_of_cand_to_failing: {dst_of_cand_to_failing}, degree_of_cand: {c['numLinks']}")
+                c["dstToFailing"] = dst_of_cand_to_failing
+            print(f"[+FBC+] Best candidates: {lst_candidates}")
 
     return "name", "ip"
 
