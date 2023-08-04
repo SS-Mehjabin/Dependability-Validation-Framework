@@ -196,7 +196,7 @@ def dara1C(failedNodeName, failedNodeIP, coords):
         bestNodeName, bestNodeIP, distance = findBestCandidate(failedNodeName, failedNodeIP)
         if bestNodeName in twoHopTable["name"] and bestNodeIP in twoHopTable["ip"]:
             print(f"[+D1C+] We are the best candidate, MOVING to replace failing node {failedNodeName}")
-            moveToLocation(coords)
+            moveToLocation(coords, distance)
         else:
             print(f"[+D1C+] We are NOT the best candidate. {bestNodeName} is moving {distance} units to replace")
     return
@@ -244,7 +244,7 @@ def findBestCandidate(fName, fIP):
 
 """ TODO:   This will be calling the iRobot script to move the iRobot into that coordintes"""
 #def moveToLocation(coords, distance):
-def moveToLocation(fcoords):
+def moveToLocation(fcoords, distance):
     source=[]
     destination=[]
     print(f"[+MTL+] iRobot carrying me: {node_name} is moving {distance} units to Coordinates: {coords} to replace failing node.")
