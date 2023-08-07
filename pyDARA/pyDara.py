@@ -24,6 +24,7 @@ global twoHopTable
 global lst_oneHopIPs
 global udp_port
 global expStartTime         # the FailureDetectionThread will set this timestamp, marking the initial time experiment starts.
+global lst_recovery         # everyTime we receive a recovery message, we will append it to this list.
 
 ######
 # DARA-1C every node needs to run a thread that Broadcasts a message as a heartbeat to it's 1-link neighbours and 
@@ -67,6 +68,12 @@ class HeartbeatReceiveThread(threading.Thread):
                 if l["ip"] == str(addr[0]):
                     print(f"[+HRT+] updated last HB received timestamp ({rnow}) for {addr[0]}")
                     l["lastHB"]=str(rnow)
+            # TODO: check if someone send a recovery message
+            if "recovered" in data:
+                # Assume Best Candidate send it in this format
+                # {"msg": "recovered", "fn": "eX", "bc": "eY"}
+                # TODO: parse message and extract failingnode name
+                lst_recovery.append( {"bc": addr[0], "fn": data["fn"], "ts" : datetime.datetime.now()} )
 
 
 class FailureDetectionThread(threading.Thread):
@@ -99,6 +106,7 @@ class FailureDetectionThread(threading.Thread):
                     # we assume this neighbour has failed, need to call DARA1C
                     print(f"[+FDT+] delta.seconds ({delta.seconds}) is more than threshold ({failureThreshold}), calling DARA-1C...")
                     dara1C(l["name"], l["ip"], l["coords"])
+                    #
             
             time.sleep(5)
 
@@ -119,6 +127,7 @@ def loadTwoHopTable(nodeName):
         node_name = twoHopTable["name"]
         lst_oneHopIPs = getOneHopNeighbourIPs()
         udp_port = 37020
+        lst_recovery = []
         return True
     else:
         return False
@@ -190,17 +199,132 @@ def getOneHopNeighbourIPandNames():
             assume it needs to be replaced by closest and least degree 1-hop neighbour.
             This function needs to figure out the distance from the failing (1-hop neighbour)
             node to all of it's neighbours. Taking into accout the degrees of nodes."""
-def dara1C(failedNodeName, failedNodeIP, coords):
-    print(f"[+D1C+] at dara1C for failingNode: {failedNodeName}, {failedNodeIP}")
-    if isCutVertex(failedNodeName, failedNodeIP):
-        bestNodeName, bestNodeIP, distance = findBestCandidate(failedNodeName, failedNodeIP)
-        if bestNodeName in twoHopTable["name"] and bestNodeIP in twoHopTable["ip"]:
-            print(f"[+D1C+] We are the best candidate, MOVING to replace failing node {failedNodeName}")
-            moveToLocation(coords, distance)
-        else:
-            print(f"[+D1C+] We are NOT the best candidate. {bestNodeName} is moving {distance} units to replace")
+def dara1C(failedNodeName, failedNodeIP, coordsFailingNode):
+    isRecovered=False
+    while not isRecovered:
+        print(f"[+D1C+] at dara1C for failingNode: {failedNodeName}, {failedNodeIP}")
+        if isCutVertex(failedNodeName, failedNodeIP):
+            bestNodeName, bestNodeIP, distance = findBestCandidate(failedNodeName, failedNodeIP)
+            
+            if bestNodeName in twoHopTable["name"] and bestNodeIP in twoHopTable["ip"]:
+                print(f"[+D1C+] We are the best candidate, MOVING to replace failing node {failedNodeName}")
+                moveToLocation(coordsFailingNode, distance)
+                #TODO: do we need a different updateTwoHopTable for the BestCandidate????
+                updateTwoHopTable(failedNodeName, bestNodeName)
+                #TODO: 
+                sendRevoredMSG(failedNodeName, bestNodeName)
+
+            else:
+                # TODO: you are not the best candidate, you need to calculate how much time it would take the Best Candidate to replace; (t)
+                #       update the table (replace the deaed with best candidate)
+                #       wait 2*t for BC to send an update message that he reached. 
+                #       If updateReceived:
+                #           isRecovered=True
+                #       else if you dont' receive update in 2*t,
+                #           isRecovered=False
+                #           
+                print(f"[+D1C+] We are NOT the best candidate. {bestNodeName} is moving {distance} units to replace")
+                updateTwoHopTable(failedNodeName, bestNodeName)
+                t = calcTimeToWaitForReplacement( coordsFailingNode, getCoords(bestNodeName) )
+                print("[+] Time to wait")
+                
+                startTime=datetime.datetime.now()
+                time.sleep(2*t)
+                endTime=datetime.datetime.now()
+
+                if not isRecoveredMSGReceived(startTime, endTime, bestNodeName, failedNodeName):
+                    failedNodeName = bestNodeName
+                    failedNodeIP = bestNodeIP
+                    dara1C(failedNodeName, failedNodeIP, coordsFailingNode)
+
     return
 
+# TODO: Should send a unicast message to all the (new) one-link neighbours. Assuming that twoHopTable of the BC is updated prior.
+def sendRevoredMSG(failName, bestName):
+        print("[+SRM+] Inside Send Recovery Message...")
+        client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        #client.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1) # TODO: Do not Broadcast, send to one-link neighbours.
+        client.settimeout(0.2)
+        #msg = bytes(f'This is -{os.environ.get("HOSTNAME")}-', 'utf-8')
+        # msg format: {"msg": "recovered", "fn": "eX", "bc": "eY"}
+        msg_json=f'{{"msg":"recovered","fn":{failName},"bc":{bestName}}}'
+        msg = bytes(f"{msg_json}", 'utf-8')
+
+        while True:
+            #client.sendto(msg, ('<broadcast>', 37020))
+            lst_oneHopIPs = getOneHopNeighbourIPs()
+            for ip in lst_oneHopIPs:
+                client.sendto(msg, (ip, udp_port))
+                print(f'[+HST+] H-B-Msg sent to {ip}:{udp_port}...(at {datetime.datetime.now()})')
+
+
+# TODO:
+def isRecoveredMSGReceived(startTime, endTime, bnode, fnode):
+    for i in lst_recovery:
+        if i["ts"] >= startTime and i["ts"] < endTime:
+            if fnode in i["fn"] and bnode in i["bc"]:
+                return True
+            
+    return False
+
+# TODO:
+def calcTimeToWaitForReplacement( coordF, coordB):
+    total_time=0
+
+    f_x = float(coordF.split(',')[0])
+    f_y = float(coordF.split(',')[1])
+
+    b_x = float(coordB.split(',')[0])
+    b_y = float(coordB.split(',')[1])
+
+    time_to_turn_90_degrees = 1
+    time_to_travel_one_tile = 2
+
+    # Turning time
+    if f_x < b_x:
+        total_time += time_to_turn_90_degrees * 2 
+        if f_y < b_y:
+            total_time += time_to_turn_90_degrees * 3
+            total_time += time_to_turn_90_degrees * 3   # after it reaches, it should face x + direction.
+        elif f_y == b_y:
+            total_time += time_to_turn_90_degrees * 2   # after it reaches, it should face x + direction.
+        elif f_y > b_y:
+            total_time += time_to_turn_90_degrees * 1
+            total_time += time_to_turn_90_degrees * 1   # after it reaches, it should face x + direction.
+    elif f_x == b_x:
+        if f_y < b_y:
+            total_time += time_to_turn_90_degrees * 1   # to turn upwards
+            total_time += time_to_turn_90_degrees * 3   # after it reaches, it should face x + direction.
+        elif  f_y > b_y:
+            total_time += time_to_turn_90_degrees * 3   # to turn downwards
+            total_time += time_to_turn_90_degrees * 1   # after it reaches, it should face x + direction.
+    elif f_x > b_x:
+        if f_y < b_y:
+            total_time += time_to_turn_90_degrees * 1   # to turn upwards
+            total_time += time_to_turn_90_degrees * 3   # after it reaches, it should face x + direction.
+        #elif f_y == b_y:
+            # no turning
+        elif f_y > b_y:
+            total_time += time_to_turn_90_degrees * 3   # to turn downwards
+            total_time += time_to_turn_90_degrees * 1   # after it reaches, it should face x + direction.
+
+    # driving time
+    total_time += time_to_travel_one_tile *  ( abs(f_x - b_x) + abs(f_y - b_y) ) 
+    return total_time
+    
+
+
+# TODO: 
+def getCoords(nodeName):
+    if nodeName in twoHopTable["name"]:
+        return twoHopTable["coords"]
+    
+    for n in twoHopTable["link"]:
+        if nodeName in n["name"]:
+            return n["coords"]
+        for nn in n["links"]:
+            if nodeName in nn["name"]:
+                return nn["coords"]
 
 """ TODO:   Double check with Dr Younis, how to find if a node is a cut-vertex from your twoHopTable."""
 def isCutVertex(fName, fIP):
@@ -383,8 +507,23 @@ def moveToLocation(fcoords, distance):
 
 
 """ TODO:   If we move, or a neighbour moves, we need to update the twoHopTable to reflect the new topology"""
-def updateTwoHopTable():
-    twoHopTable
+def updateTwoHopTable(deadNode, replacementNode):
+    for l in twoHopTable["links"]:
+        if deadNode in l["name"]:
+            lst_deadNode = l
+        index_replacement=0
+        index=0
+        for ll in l["links"]:
+            if replacementNode in ll["name"]:
+                lst_replacementNode = ll
+                index_replacement=index
+            index+=1
+
+    lst_deadNode["name"] = lst_replacementNode["name"]
+    lst_deadNode["ip"] = lst_replacementNode["ip"]
+    lst_deadNode["coords"]
+    lst_deadNode["numLinks"] = str(int(lst_deadNode["numLinks"])-1)
+    del lst_deadNode["links"][index_replacement]
     return
 
 """ TODO:   If our parent moves, we need to run this function."""
