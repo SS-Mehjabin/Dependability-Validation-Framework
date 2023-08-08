@@ -576,7 +576,7 @@ if __name__ == "__main__":
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("-n", "--nodeName", choices=['e1', 'e2', 'e3', 'e4', 'e5', 'n1', 'n2'], required=True, help="NodeName: should be either e1 through e5 or n1-n2")
-    parser.add_argument("-i", "--iRobot", required=False, help="If flag is provided, we assume node has a real iRobot. If not provided, iRobot is simulated.")
+    parser.add_argument("-i", "--iRobot", action="store_true", required=False, help="If flag is provided, we assume node has a real iRobot. If not provided, iRobot is simulated.")
     args = parser.parse_args()
 
     print(f"parser.nodeName: {args.nodeName}")
