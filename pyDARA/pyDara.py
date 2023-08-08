@@ -25,6 +25,7 @@ global lst_oneHopIPs
 global udp_port
 global expStartTime         # the FailureDetectionThread will set this timestamp, marking the initial time experiment starts.
 global lst_recovery         # everyTime we receive a recovery message, we will append it to this list.
+global iRobot               # Either true or false, based on the -i argument passed. If -i present (true), then node is physically connected to iRobot.
 
 ######
 # DARA-1C every node needs to run a thread that Broadcasts a message as a heartbeat to it's 1-link neighbours and 
@@ -268,7 +269,7 @@ def isRecoveredMSGReceived(startTime, endTime, bnode, fnode):
     return False
 
 # TODO:
-def calcTimeToWaitForReplacement( coordF, coordB):
+def calcTimeToWaitForReplacement(coordF, coordB):
     total_time=0
 
     f_x = float(coordF.split(',')[0])
@@ -311,8 +312,6 @@ def calcTimeToWaitForReplacement( coordF, coordB):
     # driving time
     total_time += time_to_travel_one_tile *  ( abs(f_x - b_x) + abs(f_y - b_y) ) 
     return total_time
-    
-
 
 # TODO: 
 def getCoords(nodeName):
@@ -366,143 +365,153 @@ def findBestCandidate(fName, fIP):
     print(f"[+FBC+] sorted_candidates: {lst_candidates}. First index is the best candidate.")
     return best["name"], best["ip"], best["dstToFailing"]  # I Need the coordinates of best candidate and failed node
 
-""" TODO:   This will be calling the iRobot script to move the iRobot into that coordintes"""
+""" TODO:   This will be calling the iRobot script to move the iRobot into that coordinates"""
 #def moveToLocation(coords, distance):
 def moveToLocation(fcoords, distance):
     source=[]
     destination=[]
-    print(f"[+MTL+] iRobot carrying me: {node_name} is moving {distance} units to Coordinates: {fcoords} to replace failing node.")
+    print(f'[+MTL+] iRobot carrying me: {node_name} is moving {distance} units from {twoHopTable["coords"]}to Coordinates: {fcoords} to replace failing node.')
     source.append(float(twoHopTable["coords"].split(",")[0]))
     source.append(float(twoHopTable["coords"].split(",")[1]))
     destination.append(float(fcoords.split(",")[0]))
     destination.append(float(fcoords.split(",")[1]))
 
-    roomba = irobot_create.Roomba('/dev/ttyUSB0')
+    # NOTE: If --iRobot or -i argument provided, then we have a serial/usb connection to a real iRobot.
+    if iRobot:
+        roomba = irobot_create.Roomba('/dev/ttyUSB0')
 
-    x_diff=destination[0]-source[0]
-    y_diff=destination[1]-source[1]
+        x_diff=destination[0]-source[0]
+        y_diff=destination[1]-source[1]
 
-    unitfront=1.575 #Time related to unit distance in grid
-    halffront=0.7875  #Time related to half unit distance in grid
-    qautspin=1.05    #90 degree spin towards left
+        unitfront=1.575 #Time related to unit distance in grid
+        halffront=0.7875  #Time related to half unit distance in grid
+        qautspin=1.05    #90 degree spin towards left
 
-    print(f"[+MTL+] Moving in X axis...")
-    if x_diff>0:
-        for i in range(floor(x_diff)):
-            roomba.set_drive_straight()
-            time.sleep(unitfront) 
-            roomba.set_drive_stop()
-            time.sleep(0.5)
-        if (x_diff%1)!=0:
-            roomba.set_drive_straight()
-            time.sleep(halffront)
-            roomba.set_drive_stop()
-            time.sleep(0.5)
+        print(f"[+MTL+] Moving in X axis...")
+        if x_diff>0:
+            for i in range(floor(x_diff)):
+                roomba.set_drive_straight()
+                time.sleep(unitfront) 
+                roomba.set_drive_stop()
+                time.sleep(0.5)
+            if (x_diff%1)!=0:
+                roomba.set_drive_straight()
+                time.sleep(halffront)
+                roomba.set_drive_stop()
+                time.sleep(0.5)
 
-    elif x_diff<0:
+        elif x_diff<0:
 
-        roomba.set_drive_spin_cw()
-        time.sleep(qautspin)
-        roomba.set_drive_stop()
-        time.sleep(0.5)
-        
-        roomba.set_drive_spin_cw()
-        time.sleep(qautspin)
-        roomba.set_drive_stop()
-        time.sleep(0.5)
-
-        for i in range(floor(abs(x_diff))):
-            roomba.set_drive_straight()
-            time.sleep(unitfront)
-            roomba.set_drive_stop()
-            time.sleep(0.5)
-        if (abs(x_diff)%1)!=0:
-            roomba.set_drive_straight()
-            time.sleep(halffront)
+            roomba.set_drive_spin_cw()
+            time.sleep(qautspin)
             roomba.set_drive_stop()
             time.sleep(0.5)
             
-        roomba.set_drive_spin_cw()
-        time.sleep(qautspin)
-        roomba.set_drive_stop()
-        time.sleep(0.5)
-        
-        roomba.set_drive_spin_cw()
-        time.sleep(qautspin)
-        roomba.set_drive_stop()
-        time.sleep(0.5)
+            roomba.set_drive_spin_cw()
+            time.sleep(qautspin)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
 
-    print(f"[+MTL+] Moving in Y axis...")
-    if y_diff>0:
-        
-        #three left turns to go to positive y 
-        
-        roomba.set_drive_spin_cw()
-        time.sleep(qautspin)
-        roomba.set_drive_stop()
-        time.sleep(0.5)
-        
-        roomba.set_drive_spin_cw()
-        time.sleep(qautspin)
-        roomba.set_drive_stop()
-        time.sleep(0.5)
-        
-        roomba.set_drive_spin_cw()
-        time.sleep(qautspin)
-        roomba.set_drive_stop()
-        time.sleep(0.5)
-        
-        for i in range(floor(y_diff)):
-            roomba.set_drive_straight()
-            time.sleep(unitfront)
-            roomba.set_drive_stop()
-            time.sleep(0.5)
-        if (y_diff%1)!=0:
-            roomba.set_drive_straight()
-            time.sleep(halffront)
-            roomba.set_drive_stop()
-            time.sleep(0.5)
-        
-        roomba.set_drive_spin_cw()
-        time.sleep(qautspin)
-        roomba.set_drive_stop()
-        time.sleep(0.5)
-            
-    elif y_diff<0:
-        
-        roomba.set_drive_spin_cw()
-        time.sleep(qautspin)
-        roomba.set_drive_stop()
-        time.sleep(0.5)
-        
-        for i in range(floor(abs(y_diff))):
-            roomba.set_drive_straight()
-            time.sleep(unitfront)
-            roomba.set_drive_stop()
-            time.sleep(0.5)
-        if (abs(y_diff)%1)!=0:
-            roomba.set_drive_straight()
-            time.sleep(halffront)
+            for i in range(floor(abs(x_diff))):
+                roomba.set_drive_straight()
+                time.sleep(unitfront)
+                roomba.set_drive_stop()
+                time.sleep(0.5)
+            if (abs(x_diff)%1)!=0:
+                roomba.set_drive_straight()
+                time.sleep(halffront)
+                roomba.set_drive_stop()
+                time.sleep(0.5)
+                
+            roomba.set_drive_spin_cw()
+            time.sleep(qautspin)
             roomba.set_drive_stop()
             time.sleep(0.5)
             
-        roomba.set_drive_spin_cw()
-        time.sleep(qautspin)
-        roomba.set_drive_stop()
-        time.sleep(0.5)
-        
-        roomba.set_drive_spin_cw()
-        time.sleep(qautspin)
-        roomba.set_drive_stop()
-        time.sleep(0.5)
-        
-        roomba.set_drive_spin_cw()
-        time.sleep(qautspin)
-        roomba.set_drive_stop()
-        time.sleep(0.5)
+            roomba.set_drive_spin_cw()
+            time.sleep(qautspin)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
 
-    print(f"[+MTL+] Roomba should be at the destination now...")
-    roomba.close()
+        print(f"[+MTL+] Moving in Y axis...")
+        if y_diff>0:
+            
+            #three left turns to go to positive y 
+            
+            roomba.set_drive_spin_cw()
+            time.sleep(qautspin)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+            
+            roomba.set_drive_spin_cw()
+            time.sleep(qautspin)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+            
+            roomba.set_drive_spin_cw()
+            time.sleep(qautspin)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+            
+            for i in range(floor(y_diff)):
+                roomba.set_drive_straight()
+                time.sleep(unitfront)
+                roomba.set_drive_stop()
+                time.sleep(0.5)
+            if (y_diff%1)!=0:
+                roomba.set_drive_straight()
+                time.sleep(halffront)
+                roomba.set_drive_stop()
+                time.sleep(0.5)
+            
+            roomba.set_drive_spin_cw()
+            time.sleep(qautspin)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+                
+        elif y_diff<0:
+            
+            roomba.set_drive_spin_cw()
+            time.sleep(qautspin)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+            
+            for i in range(floor(abs(y_diff))):
+                roomba.set_drive_straight()
+                time.sleep(unitfront)
+                roomba.set_drive_stop()
+                time.sleep(0.5)
+            if (abs(y_diff)%1)!=0:
+                roomba.set_drive_straight()
+                time.sleep(halffront)
+                roomba.set_drive_stop()
+                time.sleep(0.5)
+                
+            roomba.set_drive_spin_cw()
+            time.sleep(qautspin)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+            
+            roomba.set_drive_spin_cw()
+            time.sleep(qautspin)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+            
+            roomba.set_drive_spin_cw()
+            time.sleep(qautspin)
+            roomba.set_drive_stop()
+            time.sleep(0.5)
+
+        print(f"[+MTL+] Roomba should be at the destination now...")
+        roomba.close()
+
+    # NOTE: otherwise, we are going to calculate how long it would take a real iRobot to travel from 
+    #       bestCandidate coords to failingNode coords, and sleep that much.
+    else:
+        t = calcTimeToWaitForReplacement(fcoords, twoHopTable["coords"])
+        print(f"[+] Simulated iRobot is driving towards failing node... will take {t} seconds")
+        time.sleep(t)
+    
     return
 
 
@@ -565,15 +574,23 @@ if __name__ == "__main__":
     if os.environ["HOSTNAME"] is None:
         print(f"[+] Couldn't find the HOSTNAME for this container. Make sure to pass the ENV with -e")
     """
-
     parser = argparse.ArgumentParser()
     parser.add_argument("-n", "--nodeName", choices=['e1', 'e2', 'e3', 'e4', 'e5', 'n1', 'n2'], required=True, help="NodeName: should be either e1 through e5 or n1-n2")
+    parser.add_argument("-i", "--iRobot", required=False, help="If flag is provided, we assume node has a real iRobot. If not provided, iRobot is simulated.")
     args = parser.parse_args()
 
     print(f"parser.nodeName: {args.nodeName}")
     if not loadTwoHopTable(args.nodeName):
         sys.exit()
 
+    if args.iRobot:
+        global iRobot
+        iRobot = True
+    else:
+        global iRobot
+        iRobot = False
+
+    sys.exit()
     
     print(f"[+] twoHopTable from JSON: {twoHopTable}\n[+] Distance to e2: {getDistToNode('e2')}, Distance to e1: {getDistToNode('e1')}")
     print(f"[+] distance to non-neighbour e5: {getDistToNode('e5')}")
