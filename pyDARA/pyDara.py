@@ -25,7 +25,7 @@ global lst_oneHopIPs
 global udp_port
 global expStartTime         # the FailureDetectionThread will set this timestamp, marking the initial time experiment starts.
 global lst_recovery         # everyTime we receive a recovery message, we will append it to this list.
-global iRobot               # Either true or false, based on the -i argument passed. If -i present (true), then node is physically connected to iRobot.
+global isiRobot               # Either true or false, based on the -i argument passed. If -i present (true), then node is physically connected to iRobot.
 
 ######
 # DARA-1C every node needs to run a thread that Broadcasts a message as a heartbeat to it's 1-link neighbours and 
@@ -377,7 +377,7 @@ def moveToLocation(fcoords, distance):
     destination.append(float(fcoords.split(",")[1]))
 
     # NOTE: If --iRobot or -i argument provided, then we have a serial/usb connection to a real iRobot.
-    if iRobot:
+    if isiRobot:
         roomba = irobot_create.Roomba('/dev/ttyUSB0')
 
         x_diff=destination[0]-source[0]
@@ -584,11 +584,9 @@ if __name__ == "__main__":
         sys.exit()
 
     if args.iRobot:
-        global iRobot
-        iRobot = True
+        isiRobot = True
     else:
-        global iRobot
-        iRobot = False
+        isiRobot = False
 
     sys.exit()
     
