@@ -588,7 +588,7 @@ if __name__ == "__main__":
     else:
         isiRobot = False
 
-    sys.exit()
+    #sys.exit()
     
     print(f"[+] twoHopTable from JSON: {twoHopTable}\n[+] Distance to e2: {getDistToNode('e2')}, Distance to e1: {getDistToNode('e1')}")
     print(f"[+] distance to non-neighbour e5: {getDistToNode('e5')}")
