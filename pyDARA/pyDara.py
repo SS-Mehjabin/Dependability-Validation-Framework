@@ -517,13 +517,16 @@ def moveToLocation(fcoords, distance):
 
 """ TODO:   If we move, or a neighbour moves, we need to update the twoHopTable to reflect the new topology"""
 def updateTwoHopTable(deadNode, replacementNode):
+    print(f"[+UTT+] deadNode: {deadNode}, replacementNode: {replacementNode}")
     for l in twoHopTable["links"]:
         if deadNode in l["name"]:
+            print(f"[+UTT+] found deadNode in twohoptable")
             lst_deadNode = l
         index_replacement=0
         index=0
         for ll in l["links"]:
             if replacementNode in ll["name"]:
+                print(f"[+UTT+] found replacement node in twohoptable[\"links\"][\"links\"]")
                 lst_replacementNode = ll
                 index_replacement=index
             index+=1
