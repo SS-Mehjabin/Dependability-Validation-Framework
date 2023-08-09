@@ -44,7 +44,7 @@ class HeartbeatSendThread(threading.Thread):
 
         while True:
             #client.sendto(msg, ('<broadcast>', 37020))
-            for ip in lst_oneHopIPs:
+            for ip in getOneHopNeighbourIPs():
                 client.sendto(msg, (ip, udp_port))
                 print(f'[+HST+] H-B-Msg sent to {ip}:{udp_port}...(at {datetime.datetime.now()})')
 
@@ -324,7 +324,7 @@ def getCoords(nodeName):
     if nodeName in twoHopTable["name"]:
         return twoHopTable["coords"]
     
-    for n in twoHopTable["link"]:
+    for n in twoHopTable["links"]:
         if nodeName in n["name"]:
             return n["coords"]
         for nn in n["links"]:
@@ -547,6 +547,7 @@ def updateTwoHopTable(deadNode, replacementNode):
         lst_deadNode["coords"]
         lst_deadNode["numLinks"] = str(int(lst_deadNode["numLinks"])-1)
         del lst_deadNode["links"][index_replacement]
+        print(f"[+UTT+] twoHopTable: {twoHopTable}")
     return
 
 """ TODO:   If our parent moves, we need to run this function."""
