@@ -26,6 +26,7 @@ global udp_port
 global expStartTime         # the FailureDetectionThread will set this timestamp, marking the initial time experiment starts.
 global lst_recovery         # everyTime we receive a recovery message, we will append it to this list.
 global isiRobot               # Either true or false, based on the -i argument passed. If -i present (true), then node is physically connected to iRobot.
+global isRecovered
 
 ######
 # DARA-1C every node needs to run a thread that Broadcasts a message as a heartbeat to it's 1-link neighbours and 
@@ -51,6 +52,7 @@ class HeartbeatSendThread(threading.Thread):
 
 
 class HeartbeatReceiveThread(threading.Thread):
+    global isRecovered
     print(f"[+HRT+] HeartbeatReceiveThread object is created...")
     def run(self):
         print("[+HRT+] Inside ReceiveThread run...")
@@ -74,6 +76,7 @@ class HeartbeatReceiveThread(threading.Thread):
                 # Assume Best Candidate send it in this format
                 # {"msg": "recovered", "fn": "eX", "bc": "eY"}
                 # TODO: parse message and extract failingnode name
+                isRecovered=True
                 lst_recovery.append( {"bc": addr[0], "fn": data["fn"], "ts" : datetime.datetime.now()} )
 
 
@@ -201,6 +204,7 @@ def getOneHopNeighbourIPandNames():
             This function needs to figure out the distance from the failing (1-hop neighbour)
             node to all of it's neighbours. Taking into accout the degrees of nodes."""
 def dara1C(failedNodeName, failedNodeIP, coordsFailingNode):
+    global isRecovered
     isRecovered=False
     while not isRecovered:
         print(f"[+D1C+] at dara1C for failingNode: {failedNodeName}, {failedNodeIP}")
@@ -214,6 +218,7 @@ def dara1C(failedNodeName, failedNodeIP, coordsFailingNode):
                 updateTwoHopTable(failedNodeName, bestNodeName)
                 #TODO: 
                 sendRevoredMSG(failedNodeName, bestNodeName)
+                isRecovered=True
 
             else:
                 # TODO: you are not the best candidate, you need to calculate how much time it would take the Best Candidate to replace; (t)
