@@ -251,12 +251,10 @@ def sendRevoredMSG(failName, bestName):
         msg_json=f'{{"msg":"recovered","fn":{failName},"bc":{bestName}}}'
         msg = bytes(f"{msg_json}", 'utf-8')
 
-        while True:
-            #client.sendto(msg, ('<broadcast>', 37020))
-            lst_oneHopIPs = getOneHopNeighbourIPs()
-            for ip in lst_oneHopIPs:
-                client.sendto(msg, (ip, udp_port))
-                print(f'[+HST+] H-B-Msg sent to {ip}:{udp_port}...(at {datetime.datetime.now()})')
+        lst_oneHopIPs = getOneHopNeighbourIPs()
+        for ip in lst_oneHopIPs:
+            client.sendto(msg, (ip, udp_port))
+            print(f'[+HST+] H-B-Msg sent to {ip}:{udp_port}...(at {datetime.datetime.now()})')
 
 
 # TODO:
@@ -534,12 +532,13 @@ def updateTwoHopTable(deadNode, replacementNode):
     if replacementNode in twoHopTable["name"]:
         twoHopTable["links"] = lst_deadNode["links"]
         print(f"[+UTT+] twohoptable: {twoHopTable}")
-
-    lst_deadNode["name"] = lst_replacementNode["name"]
-    lst_deadNode["ip"] = lst_replacementNode["ip"]
-    lst_deadNode["coords"]
-    lst_deadNode["numLinks"] = str(int(lst_deadNode["numLinks"])-1)
-    del lst_deadNode["links"][index_replacement]
+    else:
+        # TODO: check from perspective of non-best candidate, i.e. E2
+        lst_deadNode["name"] = lst_replacementNode["name"]
+        lst_deadNode["ip"] = lst_replacementNode["ip"]
+        lst_deadNode["coords"]
+        lst_deadNode["numLinks"] = str(int(lst_deadNode["numLinks"])-1)
+        del lst_deadNode["links"][index_replacement]
     return
 
 """ TODO:   If our parent moves, we need to run this function."""
