@@ -206,42 +206,45 @@ def getOneHopNeighbourIPandNames():
 def dara1C(failedNodeName, failedNodeIP, coordsFailingNode):
     global isRecovered
     isRecovered=False
+
+    if not isCutVertex(failedNodeName, failedNodeIP):
+        return
+
     while not isRecovered:
         print(f"[+D1C+] at dara1C for failingNode: {failedNodeName}, {failedNodeIP}")
-        if isCutVertex(failedNodeName, failedNodeIP):
-            bestNodeName, bestNodeIP, distance = findBestCandidate(failedNodeName, failedNodeIP)
+        bestNodeName, bestNodeIP, distance = findBestCandidate(failedNodeName, failedNodeIP)
+        
+        if bestNodeName in twoHopTable["name"] and bestNodeIP in twoHopTable["ip"]:
+            print(f"[+D1C+] We are the best candidate, MOVING to replace failing node {failedNodeName}")
+            moveToLocation(coordsFailingNode, distance)
+            #TODO: do we need a different updateTwoHopTable for the BestCandidate????
+            updateTwoHopTable(failedNodeName, bestNodeName)
+            #TODO: 
+            sendRevoredMSG(failedNodeName, bestNodeName)
+            isRecovered=True
+
+        else:
+            # TODO: you are not the best candidate, you need to calculate how much time it would take the Best Candidate to replace; (t)
+            #       update the table (replace the deaed with best candidate)
+            #       wait 2*t for BC to send an update message that he reached. 
+            #       If updateReceived:
+            #           isRecovered=True
+            #       else if you dont' receive update in 2*t,
+            #           isRecovered=False
+            #           
+            print(f"[+D1C+] We are NOT the best candidate. {bestNodeName} is moving {distance} units to replace")
+            updateTwoHopTable(failedNodeName, bestNodeName)
+            t = calcTimeToWaitForReplacement( coordsFailingNode, getCoords(bestNodeName) )
+            print("[+] Time to wait for best candidate to drive to failing node: {t} seconds")
             
-            if bestNodeName in twoHopTable["name"] and bestNodeIP in twoHopTable["ip"]:
-                print(f"[+D1C+] We are the best candidate, MOVING to replace failing node {failedNodeName}")
-                moveToLocation(coordsFailingNode, distance)
-                #TODO: do we need a different updateTwoHopTable for the BestCandidate????
-                updateTwoHopTable(failedNodeName, bestNodeName)
-                #TODO: 
-                sendRevoredMSG(failedNodeName, bestNodeName)
-                isRecovered=True
+            startTime=datetime.datetime.now()
+            time.sleep(2*t)
+            endTime=datetime.datetime.now()
 
-            else:
-                # TODO: you are not the best candidate, you need to calculate how much time it would take the Best Candidate to replace; (t)
-                #       update the table (replace the deaed with best candidate)
-                #       wait 2*t for BC to send an update message that he reached. 
-                #       If updateReceived:
-                #           isRecovered=True
-                #       else if you dont' receive update in 2*t,
-                #           isRecovered=False
-                #           
-                print(f"[+D1C+] We are NOT the best candidate. {bestNodeName} is moving {distance} units to replace")
-                updateTwoHopTable(failedNodeName, bestNodeName)
-                t = calcTimeToWaitForReplacement( coordsFailingNode, getCoords(bestNodeName) )
-                print("[+] Time to wait")
-                
-                startTime=datetime.datetime.now()
-                time.sleep(2*t)
-                endTime=datetime.datetime.now()
-
-                if not isRecoveredMSGReceived(startTime, endTime, bestNodeName, failedNodeName):
-                    failedNodeName = bestNodeName
-                    failedNodeIP = bestNodeIP
-                    dara1C(failedNodeName, failedNodeIP, coordsFailingNode)
+            if not isRecoveredMSGReceived(startTime, endTime, bestNodeName, failedNodeName):
+                failedNodeName = bestNodeName
+                failedNodeIP = bestNodeIP
+                dara1C(failedNodeName, failedNodeIP, coordsFailingNode)
 
     return
 
