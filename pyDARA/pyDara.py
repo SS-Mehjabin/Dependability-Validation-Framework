@@ -531,6 +531,10 @@ def updateTwoHopTable(deadNode, replacementNode):
                 index_replacement=index
             index+=1
 
+    if replacementNode in twoHopTable["name"]:
+        twoHopTable["links"] = lst_deadNode["links"]
+        print(f"[+UTT+] twohoptable: {twoHopTable}")
+
     lst_deadNode["name"] = lst_replacementNode["name"]
     lst_deadNode["ip"] = lst_replacementNode["ip"]
     lst_deadNode["coords"]
