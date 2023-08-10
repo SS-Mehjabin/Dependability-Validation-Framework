@@ -72,7 +72,7 @@ class HeartbeatReceiveThread(threading.Thread):
                     print(f"[+HRT+] updated last HB received timestamp ({rnow}) for {addr[0]}")
                     l["lastHB"]=str(rnow)
             # TODO: check if someone send a recovery message
-            if "recovered" in data:
+            if "recovered" in str(data):
                 # Assume Best Candidate send it in this format
                 # {"msg": "recovered", "fn": "eX", "bc": "eY"}
                 # TODO: parse message and extract failingnode name
