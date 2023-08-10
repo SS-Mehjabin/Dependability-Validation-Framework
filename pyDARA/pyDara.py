@@ -53,6 +53,7 @@ class HeartbeatSendThread(threading.Thread):
 
 class HeartbeatReceiveThread(threading.Thread):
     global isRecovered
+    global lst_recovery
     print(f"[+HRT+] HeartbeatReceiveThread object is created...")
     def run(self):
         print("[+HRT+] Inside ReceiveThread run...")
@@ -78,9 +79,10 @@ class HeartbeatReceiveThread(threading.Thread):
                 # TODO: parse message and extract failingnode name
                 rm = json.loads(str(data, 'UTF-8'))
                 bc = rm["bc"]
+                fn = rm["fn"]
                 print(f"[+HRT+] Recovered message received from {addr[0]} or {bc}")
                 isRecovered=True
-                lst_recovery.append( {"bc": f"{addr[0]}", "fn": data["fn"], "ts" : datetime.datetime.now()} )
+                lst_recovery.append( { "bc": f"{bc}", "fn": f"{fn}", "ts" : datetime.datetime.now() } )
 
 
 class FailureDetectionThread(threading.Thread):
