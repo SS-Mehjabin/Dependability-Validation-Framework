@@ -233,14 +233,16 @@ def dara1C(failedNodeName, failedNodeIP, coordsFailingNode):
             #           isRecovered=False
             #           
             print(f"[+D1C+] We are NOT the best candidate. {bestNodeName} is moving {distance} units to replace")
-            updateTwoHopTable(failedNodeName, bestNodeName)
             t = calcTimeToWaitForReplacement( coordsFailingNode, getCoords(bestNodeName) )
-            print("[+] Time to wait for best candidate to drive to failing node: {t} seconds")
+            print(f"[+D1C+] Time to wait for best candidate to drive to failing node: {t} seconds. Sleeping now...")
             
             startTime=datetime.datetime.now()
             time.sleep(2*t)
             endTime=datetime.datetime.now()
 
+            updateTwoHopTable(failedNodeName, bestNodeName)
+
+            print(f"[+D1C+] checking if Recovered MSG is received from replacementNode: {failedNodeName}")
             if not isRecoveredMSGReceived(startTime, endTime, bestNodeName, failedNodeName):
                 failedNodeName = bestNodeName
                 failedNodeIP = bestNodeIP
@@ -515,8 +517,10 @@ def moveToLocation(fcoords, distance):
     #       bestCandidate coords to failingNode coords, and sleep that much.
     else:
         t = calcTimeToWaitForReplacement(fcoords, twoHopTable["coords"])
-        print(f"[+] Simulated iRobot is driving towards failing node... will take {t} seconds")
+        print(f"[+MTL+] Simulated iRobot is driving towards failing node... will take {t} seconds")
         time.sleep(t)
+    
+    print("[+MTL+] iRobot has arrived.")
     
     return
 
