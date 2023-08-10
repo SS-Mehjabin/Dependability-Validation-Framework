@@ -128,6 +128,7 @@ def loadTwoHopTable(nodeName):
     global node_name
     global lst_oneHopIPs
     global udp_port
+    global lst_recovery
     script_dir = os.path.dirname(__file__)
     with open( os.path.join(script_dir, f'configs/{nodeName}.json') ) as jsf:
         twoHopTable = json.load(jsf)
