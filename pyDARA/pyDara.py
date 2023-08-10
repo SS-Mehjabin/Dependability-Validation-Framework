@@ -76,7 +76,7 @@ class HeartbeatReceiveThread(threading.Thread):
                 # Assume Best Candidate send it in this format
                 # {"msg": "recovered", "fn": "eX", "bc": "eY"}
                 # TODO: parse message and extract failingnode name
-                rm = json.loads(str(data))
+                rm = json.loads(str(data, 'UTF-8'))
                 bc = rm["bc"]
                 print(f"[+HRT+] Recovered message received from {addr[0]} or {bc}")
                 isRecovered=True
