@@ -76,8 +76,11 @@ class HeartbeatReceiveThread(threading.Thread):
                 # Assume Best Candidate send it in this format
                 # {"msg": "recovered", "fn": "eX", "bc": "eY"}
                 # TODO: parse message and extract failingnode name
+                rm = json.loads(str(data))
+                bc = rm["bc"]
+                print(f"[+HRT+] Recovered message received from {addr[0]} or {bc}")
                 isRecovered=True
-                lst_recovery.append( {"bc": addr[0], "fn": data["fn"], "ts" : datetime.datetime.now()} )
+                lst_recovery.append( {"bc": f"{addr[0]}", "fn": data["fn"], "ts" : datetime.datetime.now()} )
 
 
 class FailureDetectionThread(threading.Thread):
@@ -258,7 +261,7 @@ def sendRevoredMSG(failName, bestName):
         client.settimeout(0.2)
         #msg = bytes(f'This is -{os.environ.get("HOSTNAME")}-', 'utf-8')
         # msg format: {"msg": "recovered", "fn": "eX", "bc": "eY"}
-        msg_json=f'{{"msg":"recovered","fn":{failName},"bc":{bestName}}}'
+        msg_json=f'{{"msg":"recovered","fn":"{failName}","bc":"{bestName}"}}'
         msg = bytes(f"{msg_json}", 'utf-8')
 
         lst_oneHopIPs = getOneHopNeighbourIPs()
