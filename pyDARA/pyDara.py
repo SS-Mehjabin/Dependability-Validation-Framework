@@ -252,11 +252,11 @@ def dara1C(failedNodeName, failedNodeIP, coordsFailingNode):
             if not isRecoveredMSGReceived(startTime, endTime, bestNodeName, failedNodeName):
                 failedNodeName = bestNodeName
                 failedNodeIP = bestNodeIP
-                print(f"[+D1C+] {bestNodeName} did not send a Recovery Message withing 2*time_to_drive, we assume it is dead as well, call DARA again Recursively")                
+                print(f"[+D1C+] {bestNodeName} did not send a Recovery Message withing 2*time_to_drive, we assume it is dead as well, call DARA again Recursively for {failedNodeName}")                
                 dara1C(failedNodeName, failedNodeIP, coordsFailingNode)
-                isRecovered=True
             else:
-                print(f"[+D1C+] Recovery Msg from {bestNodeName} was received, quiting DARA1C...)")
+                print(f"[+D1C+] Recovery Msg from {bestNodeName} was received, quiting DARA1C...")
+                isRecovered=True
 
     return
 
