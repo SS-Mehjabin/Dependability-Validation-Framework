@@ -278,8 +278,8 @@ def sendRevoredMSG(failName, bestName):
 
 # TODO: Iterate through the lst_recovery find if message was received
 def isRecoveredMSGReceived(startTime, endTime, bnode, fnode):
-    print(f"[+IRMR+] is recovery message received? lst_recovery: {lst_recovery}. bnode: {bnode}, fnode: {fnode}")
     global lst_recovery
+    print(f"[+IRMR+] is recovery message received? lst_recovery: {lst_recovery}. bnode: {bnode}, fnode: {fnode}")
     for i in lst_recovery:
         print(f"[+IRMR+] item in lst_recovery: {i}")
         if i["ts"] >= startTime and i["ts"] < endTime:
