@@ -351,10 +351,10 @@ def isCutVertex(fName, fIP):
     for l in twoHopTable["links"]:
         if fName in l["name"] and fIP in l["ip"]:
             if int(l["numLinks"]) > 2:
-                print("[+ICV+] failing node is a CUT-VERTEX, continue with DARA-1C")
+                print(f"[+ICV+] failing node {fName} is a CUT-VERTEX, continue with DARA-1C")
                 return True
             else:
-                print("[+ICV+] failing node is NOT a CUT-VERTEX (degree less than 3), no need to replace it.")
+                print(f"[+ICV+] failing node {fName} is NOT a CUT-VERTEX (degree less than 3), no need to replace it.")
                 return False
 
 
