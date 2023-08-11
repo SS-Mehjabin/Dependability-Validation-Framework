@@ -608,11 +608,10 @@ if __name__ == "__main__":
         print(f"[+] Couldn't find the HOSTNAME for this container. Make sure to pass the ENV with -e")
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-n", "--nodeName", choices=['e1', 'e2', 'e3', 'e4', 'e5', 'n1', 'n2'], required=True, help="NodeName: should be either e1 through e5 or n1-n2")
+    parser.add_argument("-n", "--nodeName", choices=['e1', 'e2', 'e3', 'e4', 'e5', 's1', 's2'], required=True, help="NodeName: should be either e1 through e5 or s1-s2")
     parser.add_argument("-i", "--iRobot", action="store_true", required=False, help="If flag is provided, we assume node has a real iRobot. If not provided, iRobot is simulated.")
     args = parser.parse_args()
 
-    print(f"parser.nodeName: {args.nodeName}")
     if not loadTwoHopTable(args.nodeName):
         sys.exit()
 
@@ -621,11 +620,9 @@ if __name__ == "__main__":
     else:
         isiRobot = False
 
-    #sys.exit()
-    
+    # Some test code... Checking if twoHopTable is loaded properly    
     print(f"[+] twoHopTable from JSON: {twoHopTable}\n[+] Distance to e2: {getDistToNode('e2')}, Distance to e1: {getDistToNode('e1')}")
     print(f"[+] distance to non-neighbour e5: {getDistToNode('e5')}")
-
     
     hbSndthread = HeartbeatSendThread()
     hbRcvThread = HeartbeatReceiveThread()
