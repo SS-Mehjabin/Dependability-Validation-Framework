@@ -1,5 +1,23 @@
-pyDARA is run in each node as follows (i.e.; to run on node e1);
+Here is the help menu for pyDara.py;
 
+```
+(base) tekeoglu@HPENVYdv6:~/Desktop/Dependability-Validation-Framework/pyDARA$ python3 pyDara.py --help
+[+HST+] HeartbeatSendThread object is created...
+[+HRT+] HeartbeatReceiveThread object is created...
+[+FDT+] FailureDetectionThread object is created...
+usage: pyDara.py [-h] -n {e1,e2,e3,e4,e5,n1,n2} [-i]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -n {e1,e2,e3,e4,e5,n1,n2}, --nodeName {e1,e2,e3,e4,e5,n1,n2}
+                        NodeName: should be either e1 through e5 or n1-n2
+  -i, --iRobot          If flag is provided, we assume node has a real iRobot.
+                        If not provided, iRobot is simulated.
+
+```
+
+
+pyDARA is run in each node as follows (i.e.; to run on raspberry-pi node e1, connected to a physical iRobot);
 ```$ python pyDARA.py --nodeName e1 --iRobot```
 
 This will read the config/e1.json file to load two-hop-table for the node.
