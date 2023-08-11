@@ -5,12 +5,12 @@ Here is the help menu for pyDara.py;
 [+HST+] HeartbeatSendThread object is created...
 [+HRT+] HeartbeatReceiveThread object is created...
 [+FDT+] FailureDetectionThread object is created...
-usage: pyDara.py [-h] -n {e1,e2,e3,e4,e5,n1,n2} [-i]
+usage: pyDara.py [-h] -n {e1,e2,e3,e4,e5,s1,s2} [-i]
 
 optional arguments:
   -h, --help            show this help message and exit
-  -n {e1,e2,e3,e4,e5,n1,n2}, --nodeName {e1,e2,e3,e4,e5,n1,n2}
-                        NodeName: should be either e1 through e5 or n1-n2
+  -n {e1,e2,e3,e4,e5,s1,s2}, --nodeName {e1,e2,e3,e4,e5,s1,s2}
+                        NodeName: should be either e1 through e5 or s1-s2
   -i, --iRobot          If flag is provided, we assume node has a real iRobot.
                         If not provided, iRobot is simulated.
 
