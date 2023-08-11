@@ -68,10 +68,10 @@ class HeartbeatReceiveThread(threading.Thread):
             #TODO:  we need to keep track of the last heart-beat received, maybe in a timestamp format.
             #       check if we can add a field in the twoHopTable["links"]["lastHB"]=datetime.datetime.now()
             for l in twoHopTable["links"]:
-                print(f"[+HRT+] link: {l}, addr: {addr[0]}")
                 if l["ip"] == str(addr[0]):
                     print(f"[+HRT+] updated last HB received timestamp ({rnow}) for {addr[0]}")
                     l["lastHB"]=str(rnow)
+                print(f"[+HRT+] link: {l}")
             # TODO: check if someone send a recovery message
             if "recovered" in str(data):
                 # Assume Best Candidate send it in this format
@@ -80,7 +80,7 @@ class HeartbeatReceiveThread(threading.Thread):
                 rm = json.loads(str(data, 'UTF-8'))
                 bc = rm["bc"]
                 fn = rm["fn"]
-                print(f"[+HRT+] Recovered message received from {addr[0]} or {bc}")
+                print(f"[+HRT+] Recovered message received from ip: {addr[0]}, BestCandName from MSG: {bc}")
                 isRecovered=True
                 lst_recovery.append( { "bc": f"{bc}", "fn": f"{fn}", "ts" : datetime.datetime.now() } )
 
@@ -109,7 +109,7 @@ class FailureDetectionThread(threading.Thread):
                     # TODO: maybe we should add a timestamp for last checked?
                     #       so that, if it has never sent HB for 2 *
                     delta = rnow - expStartTime
-                    print(f"[+FDT+] {l['ip']} has never sent HB. Has been {delta.seconds} since start of experiment")
+                    print(f"[+FDT+] {l['ip']} has never sent HB. Has been {delta.seconds} seconds since the start of experiment.")
                 
                 if delta.seconds > failureThreshold:
                     # we assume this neighbour has failed, need to call DARA1C
@@ -270,7 +270,7 @@ def sendRevoredMSG(failName, bestName):
         lst_oneHopIPs = getOneHopNeighbourIPs()
         for ip in lst_oneHopIPs:
             client.sendto(msg, (ip, udp_port))
-            print(f'[+HST+] H-B-Msg sent to {ip}:{udp_port}...(at {datetime.datetime.now()})')
+            print(f'[+SRM+] Recovery Msg: {msg} sent to {ip}:{udp_port}...(at {datetime.datetime.now()})')
 
 
 # TODO:
@@ -352,6 +352,7 @@ def isCutVertex(fName, fIP):
 
 
 def findBestCandidate(fName, fIP):
+    global lst_candidates
     print(f"[+FBC+] FindBestCandidate({fName}, {fIP})")
     best={}
     for l in twoHopTable["links"]:
