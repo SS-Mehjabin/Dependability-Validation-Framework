@@ -248,11 +248,14 @@ def dara1C(failedNodeName, failedNodeIP, coordsFailingNode):
 
             updateTwoHopTable(failedNodeName, bestNodeName)
 
-            print(f"[+D1C+] checking if Recovered MSG is received from replacementNode: {failedNodeName}")
+            print(f"[+D1C+] checking if Recovered MSG is received from replacementNode({bestNodeName}) taking over failed node({failedNodeName})")
             if not isRecoveredMSGReceived(startTime, endTime, bestNodeName, failedNodeName):
                 failedNodeName = bestNodeName
                 failedNodeIP = bestNodeIP
+                print(f"[+D1C+] {bestNodeName} did not send a Recovery Message withing 2*time_to_drive, we assume it is dead as well, call DARA again Recursively")                
                 dara1C(failedNodeName, failedNodeIP, coordsFailingNode)
+            else:
+                print(f"[+D1C+] Recovery Msg from {bestNodeName} was received, quiting DARA1C...)")
 
     return
 
@@ -273,9 +276,12 @@ def sendRevoredMSG(failName, bestName):
             print(f'[+SRM+] Recovery Msg: {msg} sent to {ip}:{udp_port}...(at {datetime.datetime.now()})')
 
 
-# TODO:
+# TODO: Iterate through the lst_recovery find if message was received
 def isRecoveredMSGReceived(startTime, endTime, bnode, fnode):
+    print(f"[+IRMR+] is recovery message received? lst_recovery: {lst_recovery}. bnode: {bnode}, fnode: {fnode}")
+    global lst_recovery
     for i in lst_recovery:
+        print(f"[+IRMR+] item in lst_recovery: {i}")
         if i["ts"] >= startTime and i["ts"] < endTime:
             if fnode in i["fn"] and bnode in i["bc"]:
                 return True
